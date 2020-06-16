@@ -1,9 +1,10 @@
 from django.core.paginator import Paginator, EmptyPage
-from django.http import HttpResponse, Http404
-from django.urls import reverse
+from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_GET
+from django.urls import reverse
 from qa.models import Question
+from qa.forms import AskForm, AnswerForm
 
 
 def test(request, *args, **kwargs):
@@ -48,7 +49,33 @@ def popular_questions(request):
 def question_page(request, pk):
     question = get_object_or_404(Question, pk=pk)
     answers = question.answer_set.all()
+    form = AnswerForm(initial={'question': str(pk)})
     return render(request, 'question_detail.html', {
         'question': question,
-        'answers': answers
+        'answers': answers,
+        'form': form
     })
+
+
+def question_ask(request):
+    if request.method == 'POST':
+        form = AskForm(request.POST)
+        if form.is_valid():
+            ask = form.save()
+            url = reverse('question_detail', args=[ask.id])
+            return HttpResponseRedirect(url)
+    else:
+        form = AskForm()
+    return render(request, 'ask_question.html', {
+        'form': form
+    })
+
+
+def question_answer(request):
+    if request.method == 'POST':
+        form = AnswerForm(request.POST)
+        if form.is_valid():
+            answer = form.save()
+            url = reverse('question_detail', args=[answer.question.id])
+            return HttpResponseRedirect(url)
+    return HttpResponseRedirect('/')
