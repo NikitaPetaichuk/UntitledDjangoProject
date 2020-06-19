@@ -1,14 +1,13 @@
 from django.core.paginator import Paginator, EmptyPage
-from django.http import HttpResponse, Http404, HttpResponseRedirect
-from django.shortcuts import get_object_or_404, render
+from django.http import Http404, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, render, redirect
 from django.views.decorators.http import require_GET
+from django.contrib.auth import login, logout
 from django.urls import reverse
+
+
 from qa.models import Question
-from qa.forms import AskForm, AnswerForm
-
-
-def test(request, *args, **kwargs):
-    return HttpResponse('OK')
+from qa.forms import AskForm, AnswerForm, SignupForm, LoginForm
 
 
 def paginate(request, query_set):
@@ -81,3 +80,36 @@ def question_answer(request):
             url = reverse('question_detail', args=[answer.question.id])
             return HttpResponseRedirect(url)
     return HttpResponseRedirect('/')
+
+
+def user_signup(request):
+    if request.method == 'POST':
+        form = SignupForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            if user is not None:
+                login(request, user)
+                return HttpResponseRedirect('/')
+    form = SignupForm()
+    return render(request, 'signup.html', {
+        'form': form
+    })
+
+
+def user_login(request):
+    if request.method == 'POST':
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            if user is not None:
+                login(request, user)
+                return HttpResponseRedirect('/')
+    form = LoginForm()
+    return render(request, 'login.html', {
+        'form': form
+    })
+
+
+def user_logout(request):
+    logout(request)
+    return redirect('login')

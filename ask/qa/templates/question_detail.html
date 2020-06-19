@@ -32,7 +32,7 @@
             <form method="post" action="/answer/">
                 {% csrf_token %}
                 {% for field in form %}
-                    <div class="form-field {% if field.errors %}alert{% endif %}">
+                    <div class="form-field {% if field.errors %} alert{% endif %}">
                         {{ field }}
                         {{ field.errors }}
                     </div>
